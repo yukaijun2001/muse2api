@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     MUSE2API_HOME=/app \
     MUSE2API_HOST=0.0.0.0 \
-    MUSE2API_PORT=18610 \
+    MUSE2API_PORT=10002 \
     MUSE2API_CHROMIUM=/usr/bin/chromium \
     MUSE2API_CDP_PORT=19210
 
@@ -37,6 +37,6 @@ RUN mkdir -p /app/data/media /app/data/downloads /root/muse2api-profiles
 
 VOLUME ["/app/data"]
 
-EXPOSE 18610
+EXPOSE 10002
 
-CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "18610"]
+CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "10002"]

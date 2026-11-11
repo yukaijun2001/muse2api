@@ -634,7 +634,7 @@ curl -X POST <span class="s">"BASE/v1/chat/completions"</span> \
 <span class="c"># 返回</span>
 {<span class="k">"created"</span>:1790148495,<span class="k">"data"</span>:[{
   <span class="k">"revised_prompt"</span>:<span class="s">"一只戴宇航头盔的柴犬"</span>,
-  <span class="k">"url"</span>:<span class="s">"http://your-server:18610/v1/media/xxxx.webp"</span>,
+  <span class="k">"url"</span>:<span class="s">"http://your-server:10002/v1/media/xxxx.webp"</span>,
   <span class="k">"kind"</span>:<span class="s">"image"</span>,<span class="k">"bytes"</span>:23860}]}
 
 <span class="c"># url 是完整绝对地址，可直接给下游渲染 / 下载；/v1/media/* 无需鉴权。</span>
@@ -705,7 +705,7 @@ t = requests.post(<span class="s">"BASE/v1/videos"</span>, json={<span class="s"
       <div class="tblwrap" style="margin-top:8px"><table>
         <thead><tr><th>配置项</th><th>填什么</th></tr></thead>
         <tbody>
-          <tr><td>Base URL / API 地址</td><td class="mono">http://&lt;你的服务器IP或域名&gt;:18610/v1</td></tr>
+          <tr><td>Base URL / API 地址</td><td class="mono">http://&lt;你的服务器IP或域名&gt;:10002/v1</td></tr>
           <tr><td>API Key</td><td class="mono">m2a_...（本页顶部「接入信息」里那个）</td></tr>
           <tr><td>模型名</td><td class="mono">muse-spark</td></tr>
         </tbody>
@@ -1015,7 +1015,7 @@ const I18N_EN = {
   "配置项": "Setting",
   "填什么": "Value",
   "Base URL / API 地址": "Base URL / API address",
-  "http://<你的服务器IP或域名>:18610/v1": "http://<your-server-IP-or-domain>:18610/v1",
+  "http://<你的服务器IP或域名>:10002/v1": "http://<your-server-IP-or-domain>:10002/v1",
   "m2a_...（本页顶部「接入信息」里那个）": "m2a_... (the one under \"Connection info\" at the top of this page)",
   "模型名": "Model name",
   "按客户端类型看能不能用": "Compatibility by client type",

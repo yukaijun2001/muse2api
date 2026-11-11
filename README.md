@@ -78,31 +78,50 @@ Upload one product photo and get talking-head sales videos, story-style ad short
 
 ## 🚀 极速部署
 
-### 方式一：Docker Compose（推荐，一行命令开箱即用）
+### 方式一：服务器一键部署（推荐，默认端口 10002）
 
-1. **克隆代码并进入目录**：
-   ```bash
-   git clone https://github.com/czg86389-hub/muse2api.git
-   cd muse2api
-   ```
+使用 root 登录 Ubuntu / Debian / 支持 Docker 的 RPM 系 Linux 服务器后执行：
 
-2. **配置环境变量（可选）**：
-   ```bash
-   cp .env.example .env
-   # 按需编辑 .env，建议修改 MUSE2API_KEY 为你自己的管理密钥
-   ```
+```bash
+curl -fsSL --retry 3 https://raw.githubusercontent.com/yukaijun2001/muse2api/main/deploy.sh -o /tmp/muse2api-deploy.sh && bash /tmp/muse2api-deploy.sh
+```
 
-   Docker Compose 会读取 `.env` 中的 `MUSE2API_KEY`，不会再被 Compose 文件中的示例值覆盖。
+普通 sudo 用户可将最后一步改为 `sudo bash /tmp/muse2api-deploy.sh`。如果服务器还没有 curl，先执行 `apt-get update && apt-get install -y curl`（Ubuntu / Debian）或 `dnf install -y curl`（RPM 系）。
 
-3. **启动容器**：
-   ```bash
-   docker compose up -d
-   ```
+已有仓库时，也可以直接执行：
 
-   Compose 会从本地源码构建 `muse2api:latest`，无需从 Docker Hub 拉取同名应用镜像；首次构建仍需联网下载 Python 基础镜像、系统软件包与 Python 依赖。
+```bash
+sudo bash deploy.sh
+```
 
-4. **访问管理面板**：
-   打开浏览器访问：`http://<你的服务器IP>:18610/admin?key=<你的MUSE2API_KEY>`
+脚本会自动完成以下操作，无需手动创建或编辑 `.env`：
+
+1. 安装 Git、curl、Python 3、Docker Engine、Docker Compose 和 Buildx（已安装则复用）。
+2. 从 GitHub 克隆或更新 `main` 分支；默认安装到 `/opt/muse2api`，在已有项目内运行则使用该项目目录。
+3. 首次部署生成 `m2a_` 开头的 48 位随机十六进制密钥，写入权限为 `600` 的 `.env`；后续部署保留原有密钥、配置和 `data/` 账号数据。
+4. 从源码构建镜像，在 TCP `10002` 端口启动服务，并为已启用的 UFW / firewalld 放行该端口。
+5. 验证健康接口和 API 鉴权，通过后打印管理面板完整链接、API Base URL 和密钥。
+
+部署完成后打开输出的管理面板链接，例如 `http://<服务器公网IP>:10002/admin?key=<自动生成的密钥>`。**云服务器安全组需放行 TCP `10002`**；首次进入面板后导入 Muse 账号，即可调用聊天、生图和视频接口。
+
+再次执行同一脚本即可更新并重新部署：
+
+```bash
+cd /opt/muse2api
+sudo bash deploy.sh
+```
+
+更新采用 Git 快进合并；存在未提交的代码修改、分支不符或提交分叉时会停止并提示，保留本地文件。脚本优先保留 `.env` 中的有效密钥，只会替换空值或示例占位值；也可在运行时设置 `MUSE2API_KEY`、`MUSE2API_PORT`、`MUSE2API_PUBLIC_BASE`、`MUSE2API_INSTALL_DIR`、`MUSE2API_REPO_URL` 和 `MUSE2API_BRANCH`。使用 `sudo` 传参时放在其后，例如 `sudo MUSE2API_PUBLIC_BASE=https://api.example.com bash deploy.sh`；已有仓库从其 `origin` 更新。
+
+查看日志或手动重启：
+
+```bash
+cd /opt/muse2api
+sudo docker compose logs -f --tail=100
+# 重启容器：sudo docker compose restart
+```
+
+Compose 会从本地源码构建 `muse2api:latest`；首次构建需联网下载 Python 基础镜像、系统软件包与 Python 依赖。macOS 可在安装 Docker Desktop 后运行 `bash deploy.sh`，脚本会尝试启动 Docker Desktop。
 
 ---
 
@@ -133,7 +152,7 @@ Upload one product photo and get talking-head sales videos, story-style ad short
    如使用 Nginx / 宝塔 / 1Panel 反代，务必将 `proxy_read_timeout` 调大至 `600s` 并关闭 `proxy_buffering`（详见 `deploy/nginx.example.conf`）：
    ```nginx
    location / {
-       proxy_pass http://127.0.0.1:18610;
+       proxy_pass http://127.0.0.1:10002;
        proxy_read_timeout 600s;      # 避免生图/视频耗时较长被 Nginx 报 502 Bad Gateway
        proxy_send_timeout 600s;
        proxy_buffering off;          # 保证 SSE 对话流式打字机 0 延迟吐字
@@ -161,7 +180,7 @@ Upload one product photo and get talking-head sales videos, story-style ad short
 1. 打开 Chrome / Edge 浏览器，访问 `chrome://extensions`，开启右上角的 **「开发者模式」**。
 2. 点击 **「加载已解压的扩展程序」**，选择本项目中的 `extension` 目录。
 3. 在该浏览器中登录 [muse.ai](https://muse.ai/) 至聊天主界面。
-4. 点击浏览器右上角插件图标，填入你的服务地址（例如 `http://1.2.3.4:18610`）和 `MUSE2API_KEY`。
+4. 点击浏览器右上角插件图标，填入你的服务地址（例如 `http://1.2.3.4:10002`）和 `MUSE2API_KEY`。
 5. 点击 **「读取并导入」**，秒级同步入库！
 
 ### 方式 B：Tampermonkey 油猴脚本（跨浏览器免安装扩展）
@@ -238,7 +257,7 @@ Authorization: Bearer <你的MUSE2API_KEY>
 ### 1. 对话补全（Chat Completions）
 
 ```bash
-curl -X POST "http://localhost:18610/v1/chat/completions" \
+curl -X POST "http://localhost:10002/v1/chat/completions" \
   -H "Authorization: Bearer m2a_your_secret_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -253,7 +272,7 @@ curl -X POST "http://localhost:18610/v1/chat/completions" \
 ### 2. 文生图（Image Generation）
 
 ```bash
-curl -X POST "http://localhost:18610/v1/images/generations" \
+curl -X POST "http://localhost:10002/v1/images/generations" \
   -H "Authorization: Bearer m2a_your_secret_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -271,7 +290,7 @@ curl -X POST "http://localhost:18610/v1/images/generations" \
   "data": [
     {
       "revised_prompt": "一只穿着反重力宇航服的机械柴犬，电影级光影，8k分辨率",
-      "url": "http://localhost:18610/v1/media/img_abc123.webp",
+      "url": "http://localhost:10002/v1/media/img_abc123.webp",
       "kind": "image",
       "bytes": 54210
     }
@@ -282,7 +301,7 @@ curl -X POST "http://localhost:18610/v1/images/generations" \
 多图参考使用 `images` 数组（最多 10 个素材；单个不超过 40 MiB、合计不超过 100 MiB，详见下方「参考素材」）；服务会按数组顺序逐张上传，并在全部附件得到网页确认后才发送提示词。`images` 不可与 `image` / `reference_image` 等旧版单图字段混用：
 
 ```bash
-curl -X POST "http://localhost:18610/v1/images/generations" \
+curl -X POST "http://localhost:10002/v1/images/generations" \
   -H "Authorization: Bearer m2a_your_secret_key" \
   -H "Content-Type: application/json" \
   -d '{
@@ -299,7 +318,7 @@ curl -X POST "http://localhost:18610/v1/images/generations" \
 `/v1/images/edits` 的 multipart 请求可以重复提交同名的 `image` 字段：
 
 ```bash
-curl -X POST "http://localhost:18610/v1/images/edits" \
+curl -X POST "http://localhost:10002/v1/images/edits" \
   -H "Authorization: Bearer m2a_your_secret_key" \
   -F "prompt=结合两张参考图生成一张新图" \
   -F "image=@subject.png" \
@@ -310,7 +329,7 @@ curl -X POST "http://localhost:18610/v1/images/edits" \
 
 - **第一步：创建生成任务**
   ```bash
-  curl -X POST "http://localhost:18610/v1/videos" \
+  curl -X POST "http://localhost:10002/v1/videos" \
     -H "Authorization: Bearer m2a_your_secret_key" \
     -H "Content-Type: application/json" \
     -d '{
@@ -323,7 +342,7 @@ curl -X POST "http://localhost:18610/v1/images/edits" \
 
   多图参考视频在同一个请求中使用有序的 `images` 数组；这里支持的是多张图片作为视频参考，不支持上传视频文件作为参考：
   ```bash
-  curl -X POST "http://localhost:18610/v1/videos" \
+  curl -X POST "http://localhost:10002/v1/videos" \
     -H "Authorization: Bearer m2a_your_secret_key" \
     -H "Content-Type: application/json" \
     -d '{
@@ -339,7 +358,7 @@ curl -X POST "http://localhost:18610/v1/images/edits" \
 
 - **第二步：轮询任务进度**
   ```bash
-  curl "http://localhost:18610/v1/videos/task_xyz789" \
+  curl "http://localhost:10002/v1/videos/task_xyz789" \
     -H "Authorization: Bearer m2a_your_secret_key"
   ```
   完成时返回：
@@ -349,7 +368,7 @@ curl -X POST "http://localhost:18610/v1/images/edits" \
     "status": "succeeded",
     "progress": 100,
     "result": {
-      "url": "http://localhost:18610/v1/media/vid_xyz789.mp4"
+      "url": "http://localhost:10002/v1/media/vid_xyz789.mp4"
     }
   }
   ```
@@ -375,7 +394,7 @@ curl -X POST "http://localhost:18610/v1/images/edits" \
 - 视频任务若第一个素材是图片，以它作为主要起始画面；成品绝不会是本次上传的素材本身（按内容哈希排除）。
 
 ```bash
-curl -X POST "http://localhost:18610/v1/videos"   -H "Authorization: Bearer m2a_your_secret_key"   -H "Content-Type: application/json"   -d '{
+curl -X POST "http://localhost:10002/v1/videos"   -H "Authorization: Bearer m2a_your_secret_key"   -H "Content-Type: application/json"   -d '{
     "prompt": "参考视频的运镜节奏，配合音频的情绪，生成一段新的城市夜景",
     "videos": [{"url": "https://example.com/ref.mp4"}],
     "audios": [{"url": "https://example.com/bgm.mp3"}],
@@ -394,7 +413,7 @@ Nginx 反代需把 `client_max_body_size` 调到 200M 左右，否则大素材�
 |---|---|---|
 | `MUSE2API_KEY` | 自动生成 | 管理控制台与 API 鉴权密钥（以 `m2a_` 开头） |
 | `MUSE2API_HOST` | `127.0.0.1` | 监听 IP（Docker 内建议 `0.0.0.0`） |
-| `MUSE2API_PORT` | `18610` | 服务运行端口 |
+| `MUSE2API_PORT` | `10002` | 服务运行端口；Compose 下为宿主机端口，容器内固定为 `10002` |
 | `MUSE2API_PUBLIC_BASE` | `空` | 对外完整 URL 前缀，留空时前端自动识别访问来源 |
 | `MUSE2API_CHROMIUM` | `chromium` | 浏览器可执行程序完整路径 |
 | `MUSE2API_CDP_PORT` | `19210` | 内部 CDP 调试通信端口 |

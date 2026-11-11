@@ -15,11 +15,11 @@
     4. 关掉窗口，完事
 
 用法：
-    python get_muse_cookie.py --base http://your-server-ip:18610 --key m2a_xxx
-    python get_muse_cookie.py --base http://your-server-ip:18610 --key m2a_xxx --label acc-01
+    python get_muse_cookie.py --base http://your-server-ip:10002 --key m2a_xxx
+    python get_muse_cookie.py --base http://your-server-ip:10002 --key m2a_xxx --label acc-01
 
 也可以先用环境变量，省得每次敲：
-    set MUSE2API_BASE=http://your-server-ip:18610     (Windows)
+    set MUSE2API_BASE=http://your-server-ip:10002     (Windows)
     set MUSE2API_KEY=m2a_xxx
     export MUSE2API_BASE=...                          (macOS / Linux)
     export MUSE2API_KEY=...
@@ -320,7 +320,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(
         description="把 muse.ai 的登录 cookie 一键导入 muse2api 账号池")
     ap.add_argument("--base", default=os.environ.get("MUSE2API_BASE", ""),
-                    help="muse2api 地址，如 http://your-server-ip:18610")
+                    help="muse2api 地址，如 http://your-server-ip:10002")
     ap.add_argument("--key", default=os.environ.get("MUSE2API_KEY", ""),
                     help="API Key（m2a_ 开头）")
     ap.add_argument("--label", default="", help="账号标签，如 acc-01")
